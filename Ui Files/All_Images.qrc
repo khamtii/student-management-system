@@ -1,0 +1,17 @@
+<RCC>
+  <qresource prefix="Background">
+    <file>Images/system-regular-42-search.gif</file>
+    <file>Images/system-regular-39-trash.gif</file>
+    <file>Images/system-regular-39-trash.gif</file>
+    <file>Images/system-regular-24-view-1.gif</file>
+    <file>Images/system-regular-39-trash.gif</file>
+    <file>Images/system-regular-40-add-card.gif</file>
+    <file>Images/system-regular-18-autorenew.gif</file>
+    <file>Images/img-01.png</file>
+    <file>Images/login.png</file>
+    <file>Images/Password.png</file>
+    <file>Images/Profile.png</file>
+    <file>Images/Untitled design.png</file>
+    <file>Images/Student background.png</file>
+  </qresource>
+</RCC>
