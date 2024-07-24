@@ -8,9 +8,61 @@
 
 from PyQt6 import QtCore, QtGui, QtWidgets
 import All_Images
+import sqlite3
+
+class DatabaseConnection:
+    def __init__(self):
+        self.conn = sqlite3.connect('students.db')
+        self.cursor = self.conn.cursor()
+        self.create_table()
+
+    def create_table(self):
+        self.cursor.execute('''
+            CREATE TABLE IF NOT EXISTS students (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                first_name TEXT,
+                other_name TEXT,
+                student_id TEXT,
+                department TEXT,
+                email TEXT,
+                phone_number TEXT,
+                address TEXT,
+                gender TEXT,
+                cgpa REAL
+            )
+        ''')
+        self.conn.commit()
+
+    def insert_student(self, data):
+        self.cursor.execute("INSERT INTO students VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?)", data)
+        self.conn.commit()
+
+    def get_students(self):
+        self.cursor.execute("SELECT * FROM students")
+        rows = self.cursor.fetchall()
+        return rows
+
+    def update_student(self, data, student_id):
+        self.cursor.execute("UPDATE students SET first_name=?, other_name=?, department=?, email=?, phone_number=?, address=?, gender=?, cgpa=? WHERE student_id=?", data)
+        self.conn.commit()
+
+    def delete_student(self, student_id):
+        self.cursor.execute("DELETE FROM students WHERE student_id=?", (student_id,))
+        self.conn.commit()
+
+    def close_connection(self):
+        self.conn.close()
+
+
 
 
 class Ui_MainWindow(object):
+    def __init__(self):
+        super().__init__()
+        self.db = DatabaseConnection()
+        self.setupUi(self)
+        self.connect_signals()
+
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(1920, 1080)
@@ -36,6 +88,9 @@ class Ui_MainWindow(object):
         self.Afit_Logo.setPixmap(QtGui.QPixmap(":/Background/Images/img-01.png"))
         self.Afit_Logo.setScaledContents(True)
         self.Afit_Logo.setObjectName("Afit_Logo")
+    
+
+
 
 #WORKING WITH THE INPUT TEXT OF THE PASSWORD 
         self.Add_Student_Button = QtWidgets.QPushButton(parent=self.Menu_Frame)
@@ -580,8 +635,54 @@ class Ui_MainWindow(object):
         self.stackedWidget.setCurrentWidget(self.Update_Profile)
     def Show_View_Data(self):
         self.stackedWidget.setCurrentWidget(self.View_Data)
+    def __init__(self):
+        self.db = DatabaseConnection()
+    def connect_signals(self):
+        self.Add_Student_Button.clicked.connect(lambda: self.stackedWidget.setCurrentWidget(self.Add_Student_Page))
+        self.Update_Profile_Button.clicked.connect(lambda: self.stackedWidget.setCurrentWidget(self.Update_Profile))
+        self.Delete_Profile_Button.clicked.connect(lambda: self.stackedWidget.setCurrentWidget(self.Delete_Profile_Page))
+        self.View_Data_Button.clicked.connect(self.load_data)
 
+        self.Save_Button.clicked.connect(self.save_student)
 
+    def save_student(self):
+        data = (
+            self.First_Name_Edit_Add.text(),
+            self.Other_Name_Edit_Add.text(),
+            self.Student_ID_Edit_Add.text(),
+            self.Department_Edit_Add.text(),
+            self.Email_Edit_Add.text(),
+            self.Phone_Number_Edit_Add.text(),
+            self.Address_Edit_Add.text(),
+            self.Gender_Edit_Add.text(),
+            float(self.CGPA_Edit_Add.text())
+        )
+        self.db.insert_student(data)
+        self.clear_add_form()
+        self.stackedWidget.setCurrentWidget(self.View_Data_Page)
+
+    def load_data(self):
+        students = self.db.get_students()
+        self.tableWidget.setRowCount(len(students))
+        for row, student in enumerate(students):
+            for column, item in enumerate(student[1:]):  # Skipping ID column
+                self.tableWidget.setItem(row, column, QtWidgets.QTableWidgetItem(str(item)))
+        self.tableWidget.resizeColumnsToContents()
+
+    def clear_add_form(self):
+        self.First_Name_Edit_Add.clear()
+        self.Other_Name_Edit_Add.clear()
+        self.Student_ID_Edit_Add.clear()
+        self.Department_Edit_Add.clear()
+        self.Email_Edit_Add.clear()
+        self.Phone_Number_Edit_Add.clear()
+        self.Address_Edit_Add.clear()
+        self.Gender_Edit_Add.clear()
+        self.CGPA_Edit_Add.clear()
+
+    def closeEvent(self, event):
+        self.db.close_connection()
+        super().closeEvent(event)
 if __name__ == "__main__":
     import sys
     app = QtWidgets.QApplication(sys.argv)
